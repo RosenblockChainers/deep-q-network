@@ -1,0 +1,55 @@
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Eclipse
+.project
+.classpath
+.settings
+.metadata
+
+# IntelliJ
+*.eml
+# Idea
+.idea
+*.iml
+*.iws
+*.ipr
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Gradle
+.gradle
+!gradle-wrapper.jar
+
+# Maven
+target
+
+# Build
+out
+build
+bin
+
+# Other
+*.log
+*.swp
+*.bak
+
+saved_networks
+summary
+
+#tex
+*.aux
+*.dvi
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
+
+# python
+__pycache__
+*.pyc

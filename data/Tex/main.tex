@@ -1,0 +1,149 @@
+\documentclass{jarticle}
+\usepackage{fancybox}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{wrapfig}%文字の画像回り込み
+\usepackage{comment}
+\usepackage{multicol}
+\usepackage{txfonts,here}
+\usepackage{algorithm} %algorithmとalgorithmic環境を利用するのに必要．
+\usepackage{algcompatible}
+\algblockdefx{FORP}{ENDFORP}[1]%
+  {\textbf{for}#1 \textbf{do in parallel}}%
+  {\textbf{end for}}
+\usepackage{bm}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{subfigure}
+\usepackage{listings}
+\usepackage[top=30truemm,bottom=30truemm,left=25truemm,right=25truemm]{geometry}
+\usepackage{url}
+% \newcommand{\argmax}{\mathop{\rm arg~max}\limits}
+% \newcommand{\argmin}{\mathop{\rm arg~min}\limits}
+%%%% ↓algotithmic の \REQUIRE と \ENSURE の表記を変更する
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+%%%% ↑algotithmic の \REQUIRE と \ENSURE の表記を変更する
+
+\begin{document}
+
+\section{Deep Q Networkの擬似コード}
+以下，Deep Q Networkの擬似コード．
+\begin{algorithm}[htb]
+\caption{Deep Q-learning with experience replay}
+\label{alg:dqn}                          
+\begin{algorithmic}[1]   
+\REQUIRE $r_{\mathrm{learn}},n_{\mathrm{rmem}},\epsilon_{\mathrm{init}},\epsilon_{\mathrm{final}},l_{\mathrm{expl}},n_{\mathrm{rpstart}},f_{\mathrm{learn}},f_{\mathrm{update}},\gamma,n_{\mathrm{batch}}, T$
+\STATE Replay Memory$~D$を初期化
+\STATE Q-Network$~Q$をランダムな重み$\theta$で初期化
+\STATE Target network$~Q^-$を重み$\theta^-=\theta$で初期化
+\STATE $t=1$
+\WHILE{$t<T$}
+\WHILE{not $done$}
+\STATE ε-greedyに従って行動$a_t$を選択
+\STATE 行動$a_t$を実行し，報酬$r_t$と次の画面$x_{t+1}$と$done$を観測
+\STATE 前処理して次の状態$s_{t+1}$を生成
+\STATE $D$に$(s_t,a_t,r_t,s_{t+1},done)$を追加，$|D|>n_{\mathrm{nmem}}$なら古いものを削除する．
+\IF{$t>n_{\mathrm{rpstart}}$}
+\STATE $\epsilon=\max{(\epsilon_{\mathrm{final}},\epsilon-\frac{\epsilon_{\mathrm{init}}-\epsilon_{\mathrm{final}}}{l_{\mathrm{expl}}})}$→εを線形減少
+\IF{$(t-1)\%f_{\mathrm{learn}}=0$}
+\STATE $D$からランダムに$(s_j,a_j,r_j,s_{j+1},done)$を$n_{\mathrm{batch}}$個の履歴をサンプル
+\STATE $y_j=
+\begin{cases}
+r_j & (done) \\
+r_j+\gamma\max_{a^{\prime}}Q^-(s_{j+1},a^{\prime};\theta^-) & (\mbox{otherwise})
+\end{cases}$
+\STATE $\theta$を$y_j-Q(s_j,a_j;\theta)$を最小化する方向に学習率$r_{\mathrm{learn}}$で更新（損失関数にはHuber損失関数を用いる．）
+\ENDIF
+\IF{$(t-1)\%f_{\mathrm{update}}=0$}
+\STATE $Q^-=Q$
+\ENDIF
+\ENDIF
+\STATE $t=t+1$
+\ENDWHILE
+\ENDWHILE
+\end{algorithmic}
+\end{algorithm}
+
+
+\section{Atari Gamesの環境のラップ処理}
+Deep Q NetworkではAtari Gamesから受け取った状態の前処理などを行うことで学習をしやすくしている．
+以下にそれらの処理を示す．
+なお，$reset_{\mathrm{hoge}}()$は環境をリセットするときに呼ぶメソッドを，$step_{\mathrm{hoge}}(a_t)$は行動$a_t$を取って環境を更新するときに呼ぶメソッドを，$observe_{\mathrm{hoge}}()$は環境の状態を返すときに呼ばれるメソッドを，$reward_{\mathrm{hoge}}()$は報酬を返すときに呼ばれるメソッドを表す．
+\begin{algorithm}[htb]
+\caption{$reset_{\mathrm{noop}}()$}
+\label{alg:noop_reset}                          
+\begin{algorithmic}[1]   
+\REQUIRE $env, l_{\mathrm{nomax}}$
+\STATE エピソードの開始時に，数フレーム何もしない行動を取り，初期状態を決定する．
+\STATE $T\sim U(1,l_{\mathrm{nomax}})$
+\FOR{$t^{\prime}=1,\cdots,T$}
+\STATE $a_{t^{\prime}}=(\mbox{do nothing})$の実行
+\ENDFOR
+\ENSURE 初期状態が決定した環境$env$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[tb]
+\caption{$step_{\mathrm{repeat}}(a_t)$}
+\label{alg:max_and_skip}                          
+\begin{algorithmic}[1]   
+\REQUIRE $env, l_{\mathrm{repeat}}, a_t$
+\STATE 1回行動を取ると，同じ行動を指定フレーム続ける．指定数分行動を繰り返したら，直前のフレームの観測との最大値を状態として返す．
+\STATE ※$a_t$は選択したい行動とする．
+\STATE $r_{\mathrm{total}}=0$
+\FOR{$t^{\prime}=1,\cdots,l_{\mathrm{repeat}}$}
+\STATE $s_{\mathrm{prev}}=s_{t^{\prime}}$
+\STATE $a_{t^{\prime}}=a_t$として行動を選択し，環境$env$を更新，$(s_{t^{\prime}+1},r_{t^{\prime}}, done_{t^{\prime}})$を観測する．
+\STATE $r_{\mathrm{total}}=r_{\mathrm{total}}+r_{t^{\prime}}$
+\STATE $s_{\mathrm{max}}=\max(s_{\mathrm{prev}}, s_{t^{\prime}+1})$
+\STATE $done=done_{t^{\prime}}$
+\ENDFOR
+\ENSURE $s_{\mathrm{max}}, r_{\mathrm{total}}, done$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[tb]
+\caption{$observe_{\mathrm{gray84}}()$}
+\label{alg:process_frame84}                          
+\begin{algorithmic}[1]   
+\REQUIRE $s_t$
+\STATE 観測した画面を(84,84)サイズのグレースケール画像に変換して返す．
+\STATE $s_t$をグレースケール画像に変換
+\STATE 変換後の$s_t$をさらに(84,84)にreshape
+\ENSURE 変換後の$s_t$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[tb]
+\caption{$step_{\mathrm{stack}}(a_t)$}
+\label{alg:frame_stack}                          
+\begin{algorithmic}[1]   
+\REQUIRE $env, l_{\mathrm{history}}, a_t, S$
+\STATE $l_{\mathrm{history}}$ステップ数分の観測の履歴を状態として返す．
+\STATE $S$は観測の履歴とする．
+\STATE $a_t$を行動として選択し，環境$env$を更新，$(s_{t+1},r_t, done_t)$を観測する．
+\STATE $S$に$s_{t+1}$を追加．$|S|>l_{\mathrm{history}}$なら，一番古い履歴を$S$から削除する．
+\ENSURE $S, r_t, done_t$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[tb]
+\caption{$reward_{\mathrm{clip}}()$}
+\label{alg:clipped_reward_wrapper}                          
+\begin{algorithmic}[1]   
+\REQUIRE $r_t$
+\STATE 報酬$r_t$が正なら$+1$に，負なら$-1$に，$0$なら$0$として返す．
+\IF{$r_t>0$}
+\STATE $r_t=1$
+\ELSIF{$r_t<0$}
+\STATE $r_t=-1$
+\ELSE
+\STATE $r_t=0$
+\ENDIF
+\ENSURE $r_t$
+\end{algorithmic}
+\end{algorithm}
+
+\end{document}
