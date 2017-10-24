@@ -1,7 +1,5 @@
 # DeepQNetwork
 
-[![](http://img.youtube.com/vi/P5CbaNMBV9s/0.jpg)](https://www.youtube.com/watch?v=P5CbaNMBV9s)
-
 ## このリポジトリについて
 技術書典3 き29 Rosenblock Chainersにて頒布を行った，【進化計算と強化学習の本２】の"DQNでPONG! 〜DQNからの強化学習入門〜"で用いたコードを公開しています．
 
@@ -13,6 +11,10 @@ Open AI Gymが提供しているAtari 2600 gamesを学習させることを想�
 DeepQNetworkの学習と，学習後のモデルのテストを行うことができます．
 
 かなりコードを整理したつもりですが，要望や意見がありましたら，遠慮なくissuesやpull reqにお願いします．
+
+## 動画
+以下のサムネ画像は，Pongを学習中のエージェトがゲームをプレイする様子を確認できる動画へのリンクです．
+[![](http://img.youtube.com/vi/P5CbaNMBV9s/0.jpg)](https://www.youtube.com/watch?v=P5CbaNMBV9s)
 
 ## 動作環境
 実装はPython3.5で行いました．
