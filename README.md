@@ -1,7 +1,9 @@
 # DeepQNetwork
 
+[![](http://img.youtube.com/vi/P5CbaNMBV9s/0.jpg)](https://www.youtube.com/watch?v=P5CbaNMBV9s)
+
 ## このリポジトリについて
-技術書典3 き29 Rosenblock Chainersにて販売を行った，【進化計算と強化学習の本２】の"DQNでPONG! 〜DQNからの強化学習入門〜"で用いたコードを公開しています．
+技術書典3 き29 Rosenblock Chainersにて頒布を行った，【進化計算と強化学習の本２】の"DQNでPONG! 〜DQNからの強化学習入門〜"で用いたコードを公開しています．
 
 DeepQNetwork
 (http://www.nature.com/nature/journal/v518/n7540/full/nature14236.html?foxtrotcallback=true)
