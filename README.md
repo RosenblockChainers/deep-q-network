@@ -1,4 +1,4 @@
-# DeepQNetwork
+# deep_q_network
 
 ## このリポジトリについて
 技術書典3 き29 Rosenblock Chainersにて頒布を行った，【進化計算と強化学習の本２】の"DQNでPONG! 〜DQNからの強化学習入門〜"で用いたコードを公開しています．
