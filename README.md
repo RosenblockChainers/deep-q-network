@@ -2,6 +2,8 @@
 
 ## このリポジトリについて
 技術書典3 き29 Rosenblock Chainersにて頒布を行った，【進化計算と強化学習の本２】の"DQNでPONG! 〜DQNからの強化学習入門〜"で用いたコードを公開しています．
+（【進化計算と強化学習の本２】は，以下のリンクにて電子版を頒布しています． https://rosenblock.booth.pm/items/666501
+）
 
 DeepQNetwork
 (http://www.nature.com/nature/journal/v518/n7540/full/nature14236.html?foxtrotcallback=true)
